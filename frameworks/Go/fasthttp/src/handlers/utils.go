@@ -1,8 +1,7 @@
 package handlers
 
 import (
-	"math/rand"
-
+	rand "github.com/maxim-kuderko/fast-random"
 	"github.com/valyala/fasthttp"
 )
 
