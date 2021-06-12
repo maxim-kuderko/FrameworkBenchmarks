@@ -3,7 +3,6 @@ package handlers
 import (
 	"context"
 	"fasthttp/src/templates"
-	jsoniter "github.com/json-iterator/go"
 	"sort"
 
 	pgx "github.com/jackc/pgx/v4"
@@ -12,7 +11,6 @@ import (
 
 var (
 	worldsCache = &Worlds{W: make([]World, worldsCount)}
-	json        = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 const (
@@ -46,11 +44,14 @@ func PopulateWorldsCache() {
 func JSON(ctx *fasthttp.RequestCtx) {
 	message := acquireMessage()
 	message.Message = helloWorldStr
-	data, _ := json.Marshal(message)
+
+	encoder := acquireJsonEncoder()
+	encoder.Encode(message)
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	ctx.Response.SetBody(data)
+	encoder.WriteTo(ctx)
 
+	releaseJsonEncoder(encoder)
 	releaseMessage(message)
 }
 
@@ -60,11 +61,13 @@ func DB(ctx *fasthttp.RequestCtx) {
 	id := randomWorldNum()
 
 	db.QueryRow(context.Background(), worldSelectSQL, id).Scan(&w.ID, &w.RandomNumber) // nolint:errcheck
-	data, _ := json.Marshal(w)
+	encoder := acquireJsonEncoder()
+	encoder.Encode(w)
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	ctx.Response.SetBody(data)
+	encoder.WriteTo(ctx)
 
+	releaseJsonEncoder(encoder)
 	releaseWorld(w)
 }
 
@@ -81,11 +84,13 @@ func Queries(ctx *fasthttp.RequestCtx) {
 		db.QueryRow(context.Background(), worldSelectSQL, id).Scan(&w.ID, &w.RandomNumber) // nolint:errcheck
 	}
 
-	data, _ := json.Marshal(worlds.W)
+	encoder := acquireJsonEncoder()
+	encoder.Encode(worlds.W)
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	ctx.Response.SetBody(data)
+	encoder.WriteTo(ctx)
 
+	releaseJsonEncoder(encoder)
 	releaseWorlds(worlds)
 }
 
@@ -99,11 +104,13 @@ func CachedWorlds(ctx *fasthttp.RequestCtx) {
 		worlds.W[i] = worldsCache.W[randomWorldNum()-1]
 	}
 
-	data, _ := json.Marshal(worlds.W)
+	encoder := acquireJsonEncoder()
+	encoder.Encode(worlds.W)
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	ctx.Response.SetBody(data)
+	encoder.WriteTo(ctx)
 
+	releaseJsonEncoder(encoder)
 	releaseWorlds(worlds)
 }
 
@@ -161,11 +168,13 @@ func Updates(ctx *fasthttp.RequestCtx) {
 
 	db.SendBatch(context.Background(), batch).Close()
 
-	data, _ := json.Marshal(worlds.W)
+	encoder := acquireJsonEncoder()
+	encoder.Encode(worlds.W)
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	ctx.Response.SetBody(data)
+	encoder.WriteTo(ctx)
 
+	releaseJsonEncoder(encoder)
 	releaseWorlds(worlds)
 }
 
