@@ -2,15 +2,18 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"fasthttp/src/templates"
+	jsoniter "github.com/json-iterator/go"
 	"sort"
 
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/valyala/fasthttp"
 )
 
-var worldsCache = &Worlds{W: make([]World, worldsCount)}
+var (
+	worldsCache = &Worlds{W: make([]World, worldsCount)}
+	json        = jsoniter.ConfigCompatibleWithStandardLibrary
+)
 
 const (
 	helloWorldStr = "Hello, World!"
