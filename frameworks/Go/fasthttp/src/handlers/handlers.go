@@ -45,11 +45,10 @@ func JSON(ctx *fasthttp.RequestCtx) {
 	message := acquireMessage()
 	message.Message = helloWorldStr
 
-	encoder := acquireJsonEncoder()
-	encoder.Encode(message)
+	encoder := acquireJsonEncoder(ctx)
+	encoder.Encode(message) // nolint:errcheck
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	encoder.WriteTo(ctx)
 
 	releaseJsonEncoder(encoder)
 	releaseMessage(message)
@@ -61,11 +60,10 @@ func DB(ctx *fasthttp.RequestCtx) {
 	id := randomWorldNum()
 
 	db.QueryRow(context.Background(), worldSelectSQL, id).Scan(&w.ID, &w.RandomNumber) // nolint:errcheck
-	encoder := acquireJsonEncoder()
-	encoder.Encode(w)
+	encoder := acquireJsonEncoder(ctx)
+	encoder.Encode(w) // nolint:errcheck
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	encoder.WriteTo(ctx)
 
 	releaseJsonEncoder(encoder)
 	releaseWorld(w)
@@ -84,11 +82,10 @@ func Queries(ctx *fasthttp.RequestCtx) {
 		db.QueryRow(context.Background(), worldSelectSQL, id).Scan(&w.ID, &w.RandomNumber) // nolint:errcheck
 	}
 
-	encoder := acquireJsonEncoder()
-	encoder.Encode(worlds.W)
+	encoder := acquireJsonEncoder(ctx)
+	encoder.Encode(worlds.W) // nolint:errcheck
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	encoder.WriteTo(ctx)
 
 	releaseJsonEncoder(encoder)
 	releaseWorlds(worlds)
@@ -104,11 +101,10 @@ func CachedWorlds(ctx *fasthttp.RequestCtx) {
 		worlds.W[i] = worldsCache.W[randomWorldNum()-1]
 	}
 
-	encoder := acquireJsonEncoder()
-	encoder.Encode(worlds.W)
+	encoder := acquireJsonEncoder(ctx)
+	encoder.Encode(worlds.W) // nolint:errcheck
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	encoder.WriteTo(ctx)
 
 	releaseJsonEncoder(encoder)
 	releaseWorlds(worlds)
@@ -168,11 +164,10 @@ func Updates(ctx *fasthttp.RequestCtx) {
 
 	db.SendBatch(context.Background(), batch).Close()
 
-	encoder := acquireJsonEncoder()
-	encoder.Encode(worlds.W)
+	encoder := acquireJsonEncoder(ctx)
+	encoder.Encode(worlds.W) // nolint:errcheck
 
 	ctx.Response.Header.SetContentType(contentTypeJSON)
-	encoder.WriteTo(ctx)
 
 	releaseJsonEncoder(encoder)
 	releaseWorlds(worlds)
